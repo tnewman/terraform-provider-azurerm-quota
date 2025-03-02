@@ -31,11 +31,11 @@ type azureRmQuotaProvider struct {
 
 // azureRmQuotaProviderModel describes the provider data model.
 type azureRmQuotaProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
+	SubscriptionId types.String `tfsdk:"subscription_id"`
 }
 
 func (p *azureRmQuotaProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "azureRmQuota"
+	resp.TypeName = "azurerm_quota"
 	resp.Version = p.version
 }
 
