@@ -42,9 +42,9 @@ func (p *azureRmQuotaProvider) Metadata(ctx context.Context, req provider.Metada
 func (p *azureRmQuotaProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
+			"subscription_id": schema.StringAttribute{
+				Description: "The Azure subscription id to use.",
+				Optional:    true,
 			},
 		},
 	}
