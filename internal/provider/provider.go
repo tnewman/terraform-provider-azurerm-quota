@@ -97,7 +97,7 @@ func (p *azureRmQuotaProvider) Configure(ctx context.Context, req provider.Confi
 		return
 	}
 
-	clientFactory, err := armquota.NewClientFactory(cred, &arm.ClientOptions{})
+	quotaFactory, err := armquota.NewClientFactory(cred, &arm.ClientOptions{})
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -108,32 +108,26 @@ func (p *azureRmQuotaProvider) Configure(ctx context.Context, req provider.Confi
 		return
 	}
 
-	resp.DataSourceData = clientFactory
-	resp.ResourceData = clientFactory
+	resp.DataSourceData = quotaFactory
+	resp.ResourceData = quotaFactory
 }
 
 func (p *azureRmQuotaProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewExampleResource,
-	}
+	return []func() resource.Resource{}
 }
 
 func (p *azureRmQuotaProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
-	return []func() ephemeral.EphemeralResource{
-		NewExampleEphemeralResource,
-	}
+	return []func() ephemeral.EphemeralResource{}
 }
 
 func (p *azureRmQuotaProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewExampleDataSource,
+		NewQuotaLimitDataSource,
 	}
 }
 
 func (p *azureRmQuotaProvider) Functions(ctx context.Context) []func() function.Function {
-	return []func() function.Function{
-		NewExampleFunction,
-	}
+	return []func() function.Function{}
 }
 
 func New(version string) func() provider.Provider {
