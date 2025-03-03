@@ -5,11 +5,15 @@ package provider
 
 import (
 	"context"
-	"net/http"
+	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/quota/armquota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -62,10 +66,50 @@ func (p *azureRmQuotaProvider) Configure(ctx context.Context, req provider.Confi
 	// Configuration values are now available.
 	// if data.Endpoint.IsNull() { /* ... */ }
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
+
+	if !data.SubscriptionId.IsNull() {
+		subscriptionId = data.SubscriptionId.ValueString()
+	}
+
+	if subscriptionId == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("host"),
+			"Missing AzureRM Subscription Id",
+			"The provider cannot create the AzureRM API client as there is a missing or empty value for the AzureRM Subscription Id. "+
+				"Set the host value in the configuration or use the ARM_SUBSCRIPTION_ID environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to Create Azure Credential",
+			"An error occured while creating an Azure Credential.\n\n"+
+				"Azure Credential Error: "+err.Error(),
+		)
+		return
+	}
+
+	clientFactory, err := armquota.NewClientFactory(cred, &arm.ClientOptions{})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to Create AzureRM Quota Client",
+			"An error occured while creating the AzureRM Quota Client.\n\n"+
+				"AzureRM Quota Client Error: "+err.Error(),
+		)
+		return
+	}
+
+	resp.DataSourceData = clientFactory
+	resp.ResourceData = clientFactory
 }
 
 func (p *azureRmQuotaProvider) Resources(ctx context.Context) []func() resource.Resource {
